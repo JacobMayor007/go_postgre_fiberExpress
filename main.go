@@ -48,7 +48,8 @@ func main() {
 		UserRepo: user,
 	}
 
-	server.Post("/", userApi.CreateUser)
+	server.Post("/user", userApi.CreateUser)
+	server.Post("/product", userApi.CreateProduct)
 
 	log.Fatal(server.Listen(":3000"))
 }

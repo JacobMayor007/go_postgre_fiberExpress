@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
 
 	_ "github.com/lib/pq"
@@ -29,6 +30,14 @@ func NewPostgreDB() (*PostgreDB, error) {
 }
 
 func (pb *PostgreDB) Init() error {
+	_, err := pb.db.Exec(`
+		create extension if not exists "uuid-ossp"
+	`)
+
+	if err != nil {
+		return err
+	}
+
 	pb.createUserTable()
 	pb.createProductTable()
 	return nil
@@ -36,7 +45,7 @@ func (pb *PostgreDB) Init() error {
 
 func (pb *PostgreDB) createUserTable() error {
 	query := `create table if not exists account (
-		id serial primary key,
+		user_id uuid primary key default uuid_generate_v4(),
 		email text unique,
 		first_name varchar(50),
 		last_name varchar(50),
@@ -83,17 +92,53 @@ func (pb *PostgreDB) createUserTable() error {
 
 func (pb *PostgreDB) createProductTable() error {
 
-	query := `create table if not exists products (
-		product_id serial primary key,
-		user_id int references account (id),
+	query := `
+		create table if not exists products (
+		product_id uuid primary key default uuid_generate_v4(),
+		user_id uuid references account (user_id),
 		product_name varchar(50),
 		product_description text,
-		product_stock int4,
-		price serial,
-		paymentMethod text,
+		product_stock int2,
+		product_price int4,
+		product_paymentMethod text,
    		created_at timestamp default now()
 	)`
 
 	_, err := pb.db.Exec(query)
+	if err != nil {
+		fmt.Printf("error: %v", err.Error())
+		return err
+	}
+
+	funcTrig := `
+		create or replace function setCreatedAt()
+		returns trigger as $$
+		begin
+			new.created_at = NOW();
+			return new;
+		end;
+		$$ language plpgsql;
+
+		create or replace function setUpdatedAt()
+		returns trigger AS $$
+		begin
+			new.updated_at := NOW();
+			return new;
+		end;
+		$$ language plpgsql;
+	`
+
+	_, err = pb.db.Exec(funcTrig)
+	if err != nil {
+		return err
+	}
+
+	trigger := `create trigger created_at_trigger
+		before insert on products
+		for each row
+	`
+
+	_, err = pb.db.Exec(trigger)
+
 	return err
 }
