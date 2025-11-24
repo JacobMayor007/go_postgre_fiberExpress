@@ -30,6 +30,29 @@ func (u *UserReposit) CreateUser(f *fiber.Ctx) error {
 	})
 }
 
+func (u *UserReposit) GetUserById(f *fiber.Ctx) error {
+
+	var body struct {
+		ID string `json:"id"`
+	}
+
+	if err := f.BodyParser(&body); err != nil {
+		return f.Status(404).JSON(fiber.Map{
+			"title":   "Getting user is not successful",
+			"message": "" + err.Error(),
+		})
+	}
+
+	user, err := u.UserRepo.GetUserById(body.ID)
+	if err != nil {
+		return f.Status(404).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	return f.Status(200).JSON(user)
+}
+
 func (u *UserReposit) CreateProduct(f *fiber.Ctx) error {
 	var product Product
 

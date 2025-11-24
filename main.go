@@ -40,16 +40,17 @@ func main() {
 		log.Fatal(err)
 	}
 
-	server.Get("/", func(res *fiber.Ctx) error {
-		return res.SendStatus(fiber.StatusOK)
-	})
-
 	userApi := &UserReposit{
 		UserRepo: user,
 	}
 
+	server.Get("/", func(res *fiber.Ctx) error {
+		return res.SendStatus(fiber.StatusOK)
+	})
+
 	server.Post("/user", userApi.CreateUser)
 	server.Post("/product", userApi.CreateProduct)
+	server.Get("/user", userApi.GetUserById)
 
 	log.Fatal(server.Listen(":3000"))
 }

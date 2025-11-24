@@ -3,6 +3,7 @@ package main
 type UserRepository interface {
 	CreateUserAccount(*User) error
 	CreateProduct(*Product) error
+	GetUserById(id string) (*User, error)
 }
 
 func (pb *PostgreDB) CreateUserAccount(user *User) error {
@@ -37,4 +38,27 @@ func (pb *PostgreDB) CreateProduct(product *Product) error {
 	)
 
 	return err
+}
+
+func (pb *PostgreDB) GetUserById(id string) (*User, error) {
+
+	rows := pb.db.QueryRow(`
+        SELECT email, first_name, last_name
+        FROM account
+        WHERE user_id = $1
+    `, id)
+
+	user := new(User)
+
+	err := rows.Scan(
+		&user.Email,
+		&user.FName,
+		&user.LName,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
