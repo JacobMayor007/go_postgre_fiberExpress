@@ -9,6 +9,7 @@ type ProdRepo interface {
 	CreateProduct(*types.Product) error
 	GetProductById(id string) (*types.Product, error)
 	UpdateProductById(id, product_name string, product_stock int16) error
+	DeleteProductById(id string) error
 }
 
 type ProdDb struct {
@@ -84,4 +85,16 @@ func (pb *ProdDb) UpdateProductById(id, product_name string, product_stock int16
 	_, err := pb.DB.Db.Exec(statement, id, product_name, product_stock)
 
 	return err
+}
+
+func (pb *ProdDb) DeleteProductById(id string) error {
+	statement := `
+		delete from products
+		where product_id = $1;
+	`
+
+	_, err := pb.DB.Db.Exec(statement, id)
+
+	return err
+
 }
