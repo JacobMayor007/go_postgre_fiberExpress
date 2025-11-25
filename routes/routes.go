@@ -7,7 +7,6 @@ import (
 )
 
 func SetupRoutes(app *fiber.App, user repository.UserRepository, prod repository.ProdRepo) {
-	// Route groups
 	UserRoutes(app, user)
 	ProductRoutes(app, prod)
 }

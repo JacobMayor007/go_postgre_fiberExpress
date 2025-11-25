@@ -15,4 +15,5 @@ func ProductRoutes(app *fiber.App, repo repository.ProdRepo) {
 
 	app.Post("/product", prodApi.CreateProduct)
 	app.Get("/product", prodApi.GetProductById)
+	app.Put("/product", prodApi.UpdateProductById)
 }

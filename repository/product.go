@@ -8,6 +8,7 @@ import (
 type ProdRepo interface {
 	CreateProduct(*types.Product) error
 	GetProductById(id string) (*types.Product, error)
+	UpdateProductById(id, product_name string, product_stock int16) error
 }
 
 type ProdDb struct {
@@ -33,6 +34,7 @@ func (pb *ProdDb) CreateProduct(product *types.Product) error {
 		)
         VALUES ($1, $2, $3, $4, $5, $6)
 	`
+
 	_, err := pb.DB.Db.Exec(query,
 		product.User_Id,
 		product.Name,
@@ -71,4 +73,15 @@ func (pb *ProdDb) GetProductById(id string) (*types.Product, error) {
 	}
 
 	return product, nil
+}
+
+func (pb *ProdDb) UpdateProductById(id, product_name string, product_stock int16) error {
+	statement := `
+		update products
+		set product_name = $2, product_stock = $3
+		where product_id = $1;
+	`
+	_, err := pb.DB.Db.Exec(statement, id, product_name, product_stock)
+
+	return err
 }
