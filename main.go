@@ -1,6 +1,9 @@
 package main
 
 import (
+	"go+postgre/database"
+	"go+postgre/repository"
+	"go+postgre/routes"
 	"log"
 	"strings"
 
@@ -31,26 +34,19 @@ func main() {
 		log.Fatal("Error on loading env data")
 	}
 
-	user, err := NewPostgreDB()
+	db, err := database.NewPostgreDB()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err := user.Init(); err != nil {
+	if err := db.Init(); err != nil {
 		log.Fatal(err)
 	}
 
-	userApi := &UserReposit{
-		UserRepo: user,
-	}
+	userRepo := repository.NewUserRepository(db)
+	prodRepo := repository.ProdDbNew(db)
 
-	server.Get("/", func(res *fiber.Ctx) error {
-		return res.SendStatus(fiber.StatusOK)
-	})
-
-	server.Post("/user", userApi.CreateUser)
-	server.Post("/product", userApi.CreateProduct)
-	server.Get("/user", userApi.GetUserById)
+	routes.SetupRoutes(server, userRepo, prodRepo)
 
 	log.Fatal(server.Listen(":3000"))
 }
