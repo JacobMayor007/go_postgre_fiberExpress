@@ -7,9 +7,10 @@ import (
 
 type ProdRepo interface {
 	CreateProduct(*types.Product) error
-	GetProductById(id string) (*types.Product, error)
+	GetProductById(id string) (*types.ProductUser, error)
 	UpdateProductById(id, product_name string, product_stock int16) error
 	DeleteProductById(id string) error
+	MultipleDeletion(user_id string) error
 }
 
 type ProdDb struct {
@@ -48,25 +49,33 @@ func (pb *ProdDb) CreateProduct(product *types.Product) error {
 	return err
 }
 
-func (pb *ProdDb) GetProductById(id string) (*types.Product, error) {
+func (pb *ProdDb) GetProductById(id string) (*types.ProductUser, error) {
 
 	rows := pb.DB.Db.QueryRow(`
-	select product_name, 
-	product_description,
-	product_price,
-	product_stock,
-	user_id 
-	from 
-	products where product_id = $1`, id)
+	 SELECT 
+            p.product_name, 
+            p.product_description,
+            p.product_price,
+            p.product_stock,
+			p.user_id,
+			a.email,
+			a.first_name,
+			a.last_name
+        FROM products p
+        INNER JOIN account a ON p.user_id = a.user_id
+        WHERE p.product_id = $1`, id)
 
-	product := new(types.Product)
+	product := &types.ProductUser{}
 
 	err := rows.Scan(
-		&product.Name,
-		&product.Description,
-		&product.Price,
-		&product.Stock,
-		&product.User_Id,
+		&product.Product.Name,
+		&product.Product.Description,
+		&product.Product.Price,
+		&product.Product.Stock,
+		&product.Product.User_Id,
+		&product.User.Email,
+		&product.User.FName,
+		&product.User.LName,
 	)
 
 	if err != nil {
@@ -96,5 +105,15 @@ func (pb *ProdDb) DeleteProductById(id string) error {
 	_, err := pb.DB.Db.Exec(statement, id)
 
 	return err
+}
 
+func (pb *ProdDb) MultipleDeletion(user_id string) error {
+	statement := `
+		delete from products
+		where user_id = $1
+	`
+
+	_, err := pb.DB.Db.Exec(statement, user_id)
+
+	return err
 }

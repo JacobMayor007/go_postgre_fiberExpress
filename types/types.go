@@ -14,3 +14,8 @@ type Product struct {
 	PaymentMethod string `json:"product_paymentMethod"`
 	User_Id       string `json:"user_id"`
 }
+
+type ProductUser struct {
+	Product Product
+	User    User
+}

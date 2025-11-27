@@ -27,6 +27,15 @@ func (pr *ProdReposit) ProductHandle(f *fiber.Ctx) error {
 	}
 }
 
+func (pr *ProdReposit) MultipleProductsHandle(f *fiber.Ctx) error {
+	switch f.Method() {
+	case "DELETE":
+		return pr.MultipleDeletion(f)
+	default:
+		return fmt.Errorf("method now allowed ")
+	}
+}
+
 func (pr *ProdReposit) CreateProduct(f *fiber.Ctx) error {
 	var product types.Product
 
@@ -48,7 +57,6 @@ func (pr *ProdReposit) CreateProduct(f *fiber.Ctx) error {
 }
 
 func (pr *ProdReposit) GetProductById(f *fiber.Ctx) error {
-	fmt.Printf("%s", f.Method())
 
 	var body struct {
 		Id string `json:"id"`
@@ -124,5 +132,31 @@ func (pr *ProdReposit) DeleteProductById(f *fiber.Ctx) error {
 		"title":      "Successful",
 		"message":    "You have successfully deleted product",
 		"successful": true,
+	})
+}
+
+func (pr *ProdReposit) MultipleDeletion(f *fiber.Ctx) error {
+
+	var body struct {
+		UserId string `json:"user_id"`
+	}
+
+	if err := f.BodyParser(&body); err != nil {
+		return f.Status(404).JSON(fiber.Map{
+			"title":   "Error occured",
+			"message": "Error: " + err.Error(),
+		})
+	}
+
+	if err := pr.ProdRepo.MultipleDeletion(body.UserId); err != nil {
+		return f.Status(404).JSON(fiber.Map{
+			"title":   "Error occured",
+			"message": "Error message: " + err.Error(),
+		})
+	}
+
+	return f.Status(200).JSON(fiber.Map{
+		"title":   "Successful",
+		"message": "You have successfully deleted the product.",
 	})
 }

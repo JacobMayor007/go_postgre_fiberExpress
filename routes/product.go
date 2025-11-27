@@ -12,9 +12,9 @@ func ProductRoutes(app *fiber.App, repo repository.ProdRepo) {
 	prodApi := api.ProdReposit{
 		ProdRepo: repo,
 	}
-
 	app.Post("/product", prodApi.ProductHandle)
 	app.Get("/product", prodApi.ProductHandle)
 	app.Put("/product", prodApi.ProductHandle)
 	app.Delete("/product", prodApi.ProductHandle)
+	app.Delete("/products", prodApi.MultipleProductsHandle)
 }
